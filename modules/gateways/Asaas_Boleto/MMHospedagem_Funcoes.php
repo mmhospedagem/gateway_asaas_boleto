@@ -1,0 +1,91 @@
+<?php
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Define o horario padrão do sistema
+date_default_timezone_set('America/Sao_Paulo');
+
+require_once("../../../init.php");
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Integração com sistema ////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+include_once(dirname(__FILE__) . '/MMHospedagem_Classes/App/mmhospedagem.php');
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Gerencia sessoes //////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+use WHMCS\Session;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// API Carbon ////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+use Carbon\Carbon;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// API Laravel DataBase //////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
+
+use WHMCS\Database\Capsule;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+use App\MMHospedagem\Asaas;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+$MMHospedagem_Classes =  (new Asaas(NULL,NULL));
+
+if((!empty($_POST))) {
+
+    if(($_POST["acao"] == "Asaas_Configuracao")) {
+
+        try {
+
+            $updatedUserCount = Capsule::table('mmhospedagem_asaas_boleto_configuracoes')
+            ->where('Nome_do_Modulo', 'Asaas_Boleto')
+            ->update(
+                [
+
+                    'Metodo_API' 		=> 	$_POST['ConexaoAsaas'],
+                    'Api_key'           =>  $_POST['Api_key'],
+                    'Origem_CPFCNPJ'    =>  $_POST['Origem_CPFCNPJ'],
+                    'Origem_CampoEnviarboletoCorreios'   =>  $_POST['Origem_BoletoCorreios'],
+                    'Juros'             =>  $_POST['Juros'],
+                    'Multa'             =>  $_POST['Multa']
+                    
+                ]
+            );
+
+            $MMHospedagem_Classes->Logs("As configurações foram salvas com sucesso.");
+            
+            echo '<div class="alert alert-success" role="alert">
+                <i class="fad fa-info-circle" style="font-size: 40px; float: left; margin-right: 10px;"></i> Sucesso! <br>Aguarde a pagina esta sendo atualizada...
+            </div>
+            
+            <meta http-equiv="refresh" content="3">';  
+
+        } catch (\Exception $e) {
+
+            $MMHospedagem_Classes->Logs("Ops não foi possivel salvar as alterações.");
+
+            echo '<div class="alert alert-danger" role="alert">
+                <i class="fad fa-exclamation-circle" style="font-size: 40px; float: left; margin-right: 10px;"></i> Ops algo deu errado! <br>Aguarde a pagina esta sendo atualizada...
+            </div>
+            
+            <meta http-equiv="refresh" content="3">';
+            
+        }
+
+    }
+
+    
+
+
+
+}
