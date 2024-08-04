@@ -261,45 +261,6 @@ function asaas_boleto_config() {
                                 </ol>
                             </nav>
 
-                            <div class="panel panel-default" style="margin: 0px;">
-                                <div class="panel-heading">
-
-                                    <i class="fas fa-cog" style="margin-right: 5px;" aria-hidden="true"></i> Informações da Licença
-
-                                </div>
-                            
-                                <div class="panel-body" style="width: 100%;">
-                                    <div class="row" style="width: 100%; margin: 0;">
-                                        <div class="col-md-12">
-
-                                            <table class="MMHospedagem_Pix_Tabela_Asaas_Boleto">
-                                                <tbody>
-                                                    <tr>
-                                                        <th>Responsável pela licença</th>
-                                                        <td>' . $MMHospedagem_Licenca_Status['registeredname'] . '</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Empresa responsável</th>
-                                                        <td>' . $MMHospedagem_Licenca_Status['companyname'] . '</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>E-mail responsável</th>
-                                                        <td>' . $MMHospedagem_Licenca_Status['email'] . '</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>Status da licença</th>
-                                                        <td>' . ($MMHospedagem_Licenca_Status['status'] == 'Active' ? '<div class="MMHospedagem_Status_Licenca_Asaas_Boleto valida_Asaas_Boleto">Válida</div>' : '<div class="MMHospedagem_Status_Licenca_Asaas_Boleto invalida_Asaas_Boleto">Invalida</div>') . '</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <br>
-
                             <nav aria-label="breadcrumb">
                                 <ol class="breadcrumb">
                                     <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-chevron-circle-right"></i> Gerenciar Gateway Asaas Boleto</li>
@@ -632,18 +593,10 @@ function asaas_boleto_config() {
             "Type"  =>  "System",
             "Value" =>  "Asaas Boleto"
         ],
-        "Asaas_Boleto_Numero_Licenca"  =>  [
-            "FriendlyName"  =>  "Número de Licença",
-            "Type"          =>  "text",
-            "Size"          =>  "255",
-            "Default"       =>  "",
-            "Description"   =>  ""
-        ],
+        
         "Asaas_Boleto_Pagina_Config"   =>  [
-            "FriendlyName"  =>  "",
-            "Description"   =>  ($MMHospedagem_Licenca_Status['status'] == 'Active' ? $MMHospedagem_Template : '<div class="alert alert-danger" role="alert">
-                Para ver as configurações do modulo informe uma licença válida!
-            </div>')
+            "FriendlyName" => "",
+            "Description" => $MMHospedagem_Template
         ]
 
     ];
@@ -674,34 +627,21 @@ function asaas_boleto_link($params) {
 
     $MMHospedagem_Classes =  (new Asaas($MMHospedagem_Metodo_API,$MMHospedagem_Api_Key));
 
-    //////////////////////////////////////////////////////////////////////////////////////
-    // Licença do sistema ////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////
+    // Definimos os dados para retorno e checkout.
+    $systemurl = rtrim($params['systemurl'],"/");
 
-    $Numero_Licenca = GatewaySetting::where('gateway', 'asaas_boleto')->where('setting', 'Asaas_Boleto_Numero_Licenca')->first();
+    foreach (Capsule::table('mmhospedagem_asaas_cobrancas')->where('ID_Invoice_WHMCS', $_GET["id"])->get() as $MMHospedagem) {
+        $MMHospedagem_invoiceNumber_Assas    =   $MMHospedagem->invoiceNumber_Assas;
+        $MMHospedagem_PDF   =   $MMHospedagem->PDF;
+    }
 
-    $MMHospedagem_Licenca_Status    =   $MMHospedagem_Classes->Licenca($Numero_Licenca->value);
+    if(($MMHospedagem_invoiceNumber_Assas != NULL) || ($MMHospedagem_invoiceNumber_Assas != "")) {
 
-    if(($MMHospedagem_Licenca_Status['status'] == 'Active')) {
+        $MMHospedagem_Template = '<a class="btn btn-primary" target="_blank" href="' . $MMHospedagem_PDF . '"><i class="fal fa-receipt"></i> Imprimir boleto</a>';
 
-        // Definimos os dados para retorno e checkout.
-        $systemurl = rtrim($params['systemurl'],"/");
+    } else {
 
-        foreach (Capsule::table('mmhospedagem_asaas_cobrancas')->where('ID_Invoice_WHMCS', $_GET["id"])->get() as $MMHospedagem) {
-            $MMHospedagem_invoiceNumber_Assas    =   $MMHospedagem->invoiceNumber_Assas;
-            $MMHospedagem_PDF   =   $MMHospedagem->PDF;
-        }
-
-        if(($MMHospedagem_invoiceNumber_Assas != NULL) || ($MMHospedagem_invoiceNumber_Assas != "")) {
-
-            $MMHospedagem_Template = '<a class="btn btn-primary" target="_blank" href="' . $MMHospedagem_PDF . '"><i class="fal fa-receipt"></i> Imprimir boleto</a>';
-
-        } else {
-
-            $MMHospedagem_Template = 'Entre em contato conosco para que possamos emitir um novo boleto para esta fatura.';
-
-        }
-
+        $MMHospedagem_Template = 'Entre em contato conosco para que possamos emitir um novo boleto para esta fatura.';
 
     }
     
